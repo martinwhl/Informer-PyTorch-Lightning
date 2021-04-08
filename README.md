@@ -1,4 +1,4 @@
-# informer-lightning
+# Informer-PyTorch-Lightning
 
 This is a **reorganized** implementation of [Informer](https://arxiv.org/2012.07436) based on [the official implementation](https://github.com/zhouhaoyi/Informer2020) and PyTorch Lightning.
 
