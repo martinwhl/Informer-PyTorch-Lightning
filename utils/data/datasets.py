@@ -2,8 +2,7 @@
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-# from sklearn.preprocessing import StandardScaler
-from utils.data.scalers import StandardScaler
+from sklearn.preprocessing import StandardScaler
 from utils.time_features import time_features
 
 
