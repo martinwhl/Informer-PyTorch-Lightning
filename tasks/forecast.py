@@ -8,7 +8,8 @@ import torchmetrics
 
 class InformerForecastTask(pl.LightningModule):
     def __init__(self, model, seq_len, label_len, pred_len, variate,
-                 loss='mse', learning_rate=0.0001, lr_scheduler='linear', **kwargs):
+                 loss='mse', learning_rate=0.0001, lr_scheduler='linear', 
+                 inverse_scaling=False, scaler=None, **kwargs):
         super(InformerForecastTask, self).__init__()
         self.model = model
         self.save_hyperparameters()
@@ -18,6 +19,7 @@ class InformerForecastTask(pl.LightningModule):
         ])
         self.val_metrics = metrics.clone(prefix='Val_')
         self.test_metrics = metrics.clone(prefix='Test_')
+        self.scaler = scaler
 
     def forward(self, batch_x, batch_y, batch_x_mark, batch_y_mark):
         decoder_input = torch.zeros_like(batch_y[:, -self.hparams.pred_len:, :]).type_as(batch_y)  # type: ignore
@@ -44,6 +46,9 @@ class InformerForecastTask(pl.LightningModule):
         outputs, batch_y = self.shared_step(batch, batch_idx)
         loss = self.loss(outputs, batch_y)
         self.log('Val_Loss', loss)
+        if self.hparams.inverse_scaling and self.scaler is not None:
+            outputs = self.scaler.inverse_transform(outputs)
+            batch_y = self.scaler.inverse_transform(batch_y)
         metrics = self.val_metrics(outputs, batch_y)
         self.log_dict(metrics)
         return {
@@ -53,12 +58,26 @@ class InformerForecastTask(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         outputs, batch_y = self.shared_step(batch, batch_idx)
+        if self.hparams.inverse_scaling and self.scaler is not None:
+            outputs = self.scaler.inverse_transform(outputs)
+            batch_y = self.scaler.inverse_transform(batch_y)
         metrics = self.test_metrics(outputs, batch_y)
         self.log_dict(metrics)
         return {
             'outputs': outputs,
             'targets': batch_y
         }
+
+    def on_fit_start(self):
+        if self.hparams.inverse_scaling and self.scaler is not None:
+            if self.scaler.device == torch.device('cpu'):
+                self.scaler.to(self.device)
+    
+    def on_test_start(self):
+        if self.hparams.inverse_scaling and self.scaler is not None:
+            if self.scaler.device == torch.device('cpu'):
+                self.scaler.to(self.device)
+
 
     def loss(self, outputs, targets, **kwargs):
         if self.hparams.loss == 'mse':  # type: ignore
@@ -91,5 +110,7 @@ class InformerForecastTask(pl.LightningModule):
                             choices=['exponential', 'two_step_exp'])
         parser.add_argument('--loss', type=str, default='mse', choices=['mse'],
                             help='Name of loss function')
+        parser.add_argument('--inverse_scaling', '--inverse', action='store_true', 
+                            help='Scale back to original values')
         return parser
         

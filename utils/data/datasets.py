@@ -2,7 +2,7 @@
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from sklearn.preprocessing import StandardScaler
+from utils.data.scalers import StandardScaler
 from utils.time_features import time_features
 
 
@@ -69,10 +69,12 @@ class ETTDataset(Dataset):
         elif self.variate == 'u':
             df_data = df[[self.target]]
         
+        data = torch.FloatTensor(df_data.values)
+
         if self.scale:
-            train_data = df_data[begin_indices['train']:end_indices['train']]
-            self.scaler.fit(train_data.values)
-            data = self.scaler.transform(df_data.values)
+            train_data = data[begin_indices['train']:end_indices['train']]
+            self.scaler.fit(train_data)
+            data = self.scaler.transform(data)
         else:
             data = df_data.values
 

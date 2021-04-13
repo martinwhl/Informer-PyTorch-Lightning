@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import torch
 
 
 class Scaler(ABC):
@@ -23,6 +24,7 @@ class StandardScaler(Scaler):
     def __init__(self):
         self.mean = None
         self.std = None
+        self._device = torch.device('cpu')
 
     def fit(self, x):
         self.mean = x.mean(0, keepdim=True)
@@ -41,3 +43,17 @@ class StandardScaler(Scaler):
         x *= self.std
         x += self.mean
         return x
+
+    def to(self, device):
+        self.mean = self.mean.to(device)
+        self.std = self.std.to(device)
+        self._device = device
+        return self
+
+    @property
+    def device(self):
+        return self._device
+    
+    @device.setter
+    def device(self, new_device):
+        self.to(self, new_device)

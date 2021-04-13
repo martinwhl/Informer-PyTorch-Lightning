@@ -3,7 +3,6 @@ import pandas as pd
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from utils.data.datasets import ETTDataset
-from utils.data.scalers import StandardScaler
 
 
 class ETTDataModule(pl.LightningDataModule):
@@ -22,8 +21,6 @@ class ETTDataModule(pl.LightningDataModule):
         self.frequency = frequency
         self.batch_size = batch_size
         self.num_workers = num_workers
-        
-        self.scaler = StandardScaler()
 
     def setup(self, stage: str = None):
         if stage == 'fit' or stage is None:
@@ -35,6 +32,7 @@ class ETTDataModule(pl.LightningDataModule):
                                           label_len=self.label_len, pred_len=self.pred_len,
                                           variate=self.variate, target=self.target, scale=self.scale, 
                                           time_encoding=self.time_encoding, frequency=self.frequency)
+            self.scaler = self.train_dataset.scaler
         if stage == 'test' or stage is None:
             self.test_dataset = ETTDataset(self._data_path, split='test', seq_len=self.seq_len, 
                                            label_len=self.label_len, pred_len=self.pred_len,

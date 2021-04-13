@@ -1,4 +1,5 @@
 import argparse
+import copy
 import pytorch_lightning as pl
 import models
 import tasks
@@ -50,7 +51,7 @@ def main(args):
     rank_zero_info(vars(args))
 
     model = MODEL_DICT.get(args.model_name)(out_len=args.pred_len, distil=(not args.no_distil), **vars(args))
-    task = tasks.InformerForecastTask(model, **vars(args))
+    task = tasks.InformerForecastTask(model, scaler=copy.deepcopy(dm.scaler), **vars(args))
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(monitor='Val_Loss')  # type: ignore
     early_stopping_callback = pl.callbacks.EarlyStopping(monitor='Val_Loss', patience=args.patience)  # type: ignore
