@@ -103,3 +103,6 @@ class ETTDataset(Dataset):
     def inverse_transform(self, data):
         return self.scaler.inverse_transform(data)
 
+    @property
+    def num_features(self):
+        return self.time_series.shape[1]

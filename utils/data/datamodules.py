@@ -52,6 +52,10 @@ class ETTDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=True)
 
+    @property
+    def num_features(self):
+        return self.train_dataset.num_features
+
     @staticmethod
     def add_data_specific_arguments(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)

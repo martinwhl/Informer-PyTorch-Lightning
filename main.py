@@ -11,33 +11,21 @@ DATA_DICT = {
     'ETTh1': {
         'path': 'data/ETT/ETTh1.csv',
         'target': 'OT',
-        'm': [7, 7, 7],
-        'u': [1, 1, 1],
-        'mu': [7, 7, 1],
         'frequency': 'h'
     },
     'ETTh2': {
         'path': 'data/ETT/ETTh2.csv',
         'target': 'OT',
-        'm': [7, 7, 7],
-        'u': [1, 1, 1],
-        'mu': [7, 7, 1],
         'frequency': 'h'
     },
     'ETTm1': {
         'path': 'data/ETT/ETTm1.csv',
         'target': 'OT',
-        'm': [7, 7, 7],
-        'u': [1, 1, 1],
-        'mu': [7, 7, 1],
         'frequency': 't'
     },
     'ETTm2': {
         'path': 'data/ETT/ETTm2.csv',
         'target': 'OT',
-        'm': [7, 7, 7],
-        'u': [1, 1, 1],
-        'mu': [7, 7, 1],
         'frequency': 't'
     },
 }
@@ -50,15 +38,17 @@ MODEL_DICT = {
 
 def main(args):
     args.target = DATA_DICT.get(args.data).get('target')
-    args.time_encoding = args.embedding_type == 'timefeature'
-    args.enc_in = DATA_DICT.get(args.data).get(args.variate)[0]
-    args.dec_in = DATA_DICT.get(args.data).get(args.variate)[1]
-    args.c_out = DATA_DICT.get(args.data).get(args.variate)[2]
     args.frequency = DATA_DICT.get(args.data).get('frequency')
+    args.time_encoding = args.embedding_type == 'timefeature'
+
+    dm = utils.data.ETTDataModule(data_path=DATA_DICT.get(args.data).get('path'), **vars(args))
+    dm.setup(stage='fit')
+
+    args.enc_in = args.dec_in = 1 if args.variate == 'u' else dm.num_features
+    args.c_out = dm.num_features if args.variate == 'm' else 1
 
     rank_zero_info(vars(args))
 
-    dm = utils.data.ETTDataModule(data_path=DATA_DICT.get(args.data).get('path'), **vars(args))
     model = MODEL_DICT.get(args.model_name)(out_len=args.pred_len, distil=(not args.no_distil), **vars(args))
     task = tasks.InformerForecastTask(model, **vars(args))
 
