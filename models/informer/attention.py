@@ -21,7 +21,7 @@ class FullAttention(nn.Module):
         scores = torch.einsum('blhe,bshe->bhls', queries, keys)
         if self.mask_flag:
             if attention_mask is None:
-                attention_mask = triangular_causal_mask(B, L).to(queries.device)
+                attention_mask = triangular_causal_mask(B, L, device=queries.device)
             scores.masked_fill_(attention_mask, -np.inf)
         
         A = self.dropout(torch.softmax(scale * scores, dim=-1))
@@ -104,7 +104,7 @@ class ProbSparseAttention(nn.Module):
         B, H, L_V, D = values.shape
 
         if self.mask_flag:
-            attention_mask = prob_mask(B, H, L_Q, index, scores).to(values.device)
+            attention_mask = prob_mask(B, H, L_Q, index, scores, device=values.device)
             scores.masked_fill_(attention_mask, -np.inf)
         
         attention = torch.softmax(scores, dim=-1)
