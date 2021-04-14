@@ -1,0 +1,1 @@
+Download the [ETTDataset](https://github.com/zhouhaoyi/ETDataset) and put the `*.csv` files under the `data/ETT` folder.
