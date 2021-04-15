@@ -66,8 +66,10 @@ class ETTDataset(Dataset):
         if self.variate == 'm' or self.variate == 'mu':
             data_columns = df.columns[1:]
             df_data = df[data_columns]
+            self.feature_names = data_columns
         elif self.variate == 'u':
             df_data = df[[self.target]]
+            self.feature_names = [self.target]
         
         data = torch.FloatTensor(df_data.values)
 
@@ -108,3 +110,7 @@ class ETTDataset(Dataset):
     @property
     def num_features(self):
         return self.time_series.shape[1]
+
+    @property
+    def columns(self):
+        return self.columns

@@ -3,6 +3,7 @@ import copy
 import pytorch_lightning as pl
 import models
 import tasks
+import utils.callbacks
 import utils.data
 import utils.misc
 from pytorch_lightning.utilities import rank_zero_info
@@ -57,13 +58,18 @@ def main(args):
     model = MODEL_DICT.get(args.model_name)(out_len=args.pred_len, distil=(not args.no_distil), **vars(args))
     task = tasks.InformerForecastTask(model, scaler=copy.deepcopy(dm.scaler), **vars(args))
 
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(monitor='Val_Loss')  # type: ignore
-    early_stopping_callback = pl.callbacks.EarlyStopping(monitor='Val_Loss', patience=args.patience)  # type: ignore
+    callbacks = [
+        pl.callbacks.ModelCheckpoint(monitor='Val_Loss'),
+        pl.callbacks.EarlyStopping(monitor='Val_Loss', patience=args.patience)
+    ]
+    if args.plot_instances:
+        callbacks.append(utils.callbacks.PlotTestInstancesCallback(list(range(0, dm.num_features))))
+    if args.plot_results:
+        callbacks.append(utils.callbacks.PlotTestResultsCallback(list(range(0, dm.num_features))))
+    if args.save_results_path is not None:
+        callbacks.append(utils.callbacks.SaveTestResultsCallback(args.save_results_path))
 
-    trainer = pl.Trainer.from_argparse_args(args, callbacks=[
-        checkpoint_callback, 
-        early_stopping_callback
-    ])
+    trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks)
     trainer.fit(task, dm)
     trainer.test(task, datamodule=dm)
     
@@ -81,6 +87,12 @@ if __name__ == '__main__':
                         help='The name of the dataset')
     parser.add_argument('--patience', type=int, default=3, 
                         help='Number of patience epochs for early stopping')
+    parser.add_argument('--plot_instances', action='store_true',
+                        help='Plot the ground truth and the predictions of test instances')
+    parser.add_argument('--plot_results', action='store_true',
+                        help='Plot the ground truth and the predictions of test data')
+    parser.add_argument('--save_results_path', type=str, 
+                        help='The path to test results, saved as NumPy *.npz file')
 
     temp_args, _ = parser.parse_known_args()
 

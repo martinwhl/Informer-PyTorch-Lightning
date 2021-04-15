@@ -54,6 +54,10 @@ class ETTDataModule(pl.LightningDataModule):
     def num_features(self):
         return self.train_dataset.num_features
 
+    @property
+    def feature_names(self):
+        return self.train_dataset.feature_names
+
     @staticmethod
     def add_data_specific_arguments(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
