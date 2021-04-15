@@ -8,8 +8,8 @@ This is a **reorganized** implementation of [Informer](https://arxiv.org/2012.07
 * pandas
 * scikit-learn
 * torch
-* torchmetrics
-* pytorch-lightning
+* torchmetrics>=0.3
+* pytorch-lightning>=1.3
 
 ## Model Training
 

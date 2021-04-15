@@ -2,5 +2,5 @@ numpy
 pandas
 scikit-learn
 torch
-torchmetrics
-pytorch-lightning
+torchmetrics>=0.3
+pytorch-lightning>=1.3
