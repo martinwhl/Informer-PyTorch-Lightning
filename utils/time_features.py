@@ -17,42 +17,42 @@ class TimeFeature(ABC):
 
 class SecondOfMinute(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return index.second / 59.0 - 0.5  # type: ignore
+        return index.second / 59.0 - 0.5
 
 
 class MinuteOfHour(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return index.minute / 59.0 - 0.5  # type: ignore
+        return index.minute / 59.0 - 0.5
 
 
 class HourOfDay(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return index.hour / 23.0 - 0.5 # type: ignore
+        return index.hour / 23.0 - 0.5
 
 
 class DayOfWeek(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return index.dayofweek / 6.0 - 0.5  # type: ignore
+        return index.dayofweek / 6.0 - 0.5
 
 
 class DayOfMonth(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return (index.day - 1) / 30.0 - 0.5  # type: ignore
+        return (index.day - 1) / 30.0 - 0.5
 
 
 class DayOfYear(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return (index.dayofyear - 1) / 365.0 - 0.5  # type: ignore
+        return (index.dayofyear - 1) / 365.0 - 0.5
 
 
 class MonthOfYear(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return (index.month - 1) / 11.0 - 0.5  # type: ignore
+        return (index.month - 1) / 11.0 - 0.5
 
 
 class WeekOfYear(TimeFeature):
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return (index.isocalendar().week - 1) / 52.0 - 0.5  # type: ignore
+        return (index.isocalendar().week - 1) / 52.0 - 0.5
 
 
 def time_features_from_frequency(frequency: str) -> List[TimeFeature]:
@@ -109,4 +109,4 @@ def time_features(dates, time_encoding=True, frequency: str='h'):
         }
         return dates[FREQUENCY_DICT[frequency.lower()]].values
     dates = pd.to_datetime(dates.date.values)
-    return np.vstack([feat(dates) for feat in time_features_from_frequency(frequency)]).transpose(1, 0)  # type: ignore
+    return np.vstack([feat(dates) for feat in time_features_from_frequency(frequency)]).transpose(1, 0)

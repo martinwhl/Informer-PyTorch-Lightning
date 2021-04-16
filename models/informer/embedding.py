@@ -18,7 +18,7 @@ class PositionalEmbedding(nn.Module):
         self.register_buffer('embedding', embedding)
 
     def forward(self, x):
-        return self.embedding[:, :x.size(1)]  # type: ignore
+        return self.embedding[:, :x.size(1)]
 
 
 class TokenEmbedding(nn.Module):
