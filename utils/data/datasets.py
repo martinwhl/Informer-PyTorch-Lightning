@@ -52,7 +52,7 @@ class ETTDataset(Dataset):
             begin_indices = {
                 'train': 0,
                 'val': int(len(df) * 0.7) - self.seq_len,
-                'test': len(df) - int(len(df) * 0.7) - int(len(df) * 0.2) - self.seq_len
+                'test': int(len(df) * 0.7) + int(len(df) * 0.2) - self.seq_len
             }
             end_indices = {
                 'train': int(len(df) * 0.7),
