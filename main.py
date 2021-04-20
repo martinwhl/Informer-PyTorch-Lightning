@@ -93,6 +93,8 @@ if __name__ == '__main__':
                         help='Plot the ground truth and the predictions of test data')
     parser.add_argument('--save_results_path', type=str, 
                         help='The path to test results, saved as NumPy *.npz file')
+    parser.add_argument('--log_path', type=str, default=None,
+                        help='Path to save the log in console as text file')
 
     temp_args, _ = parser.parse_known_args()
 
@@ -103,5 +105,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     utils.misc.format_logger(pl._logger)
+    if args.log_path is not None:
+        utils.misc.output_logger_to_file(pl._logger, args.log_path)
 
     main(args)
