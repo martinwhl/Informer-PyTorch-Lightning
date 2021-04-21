@@ -8,7 +8,7 @@ import torchmetrics
 
 class InformerForecastTask(pl.LightningModule):
     def __init__(self, model, seq_len, label_len, pred_len, variate,
-                 loss='mse', learning_rate=0.0001, lr_scheduler='linear', 
+                 loss='mse', learning_rate=0.0001, lr_scheduler='exponential', 
                  inverse_scaling=False, scaler=None, **kwargs):
         super(InformerForecastTask, self).__init__()
         self.model = model
@@ -106,7 +106,7 @@ class InformerForecastTask(pl.LightningModule):
         parser.add_argument('--model_type', type=str, default='informer', choices=['informer', 'informer_stack'])
         parser.add_argument('--learning_rate', '--lr', type=float, default=0.0001,
                             help='Learning rate of the optimizer')
-        parser.add_argument('--lr-scheduler', type=str, default='exponential', 
+        parser.add_argument('--lr_scheduler', type=str, default='exponential', 
                             choices=['exponential', 'two_step_exp'])
         parser.add_argument('--loss', type=str, default='mse', choices=['mse'],
                             help='Name of loss function')
