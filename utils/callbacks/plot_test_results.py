@@ -1,9 +1,10 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from pytorch_lightning.callbacks import Callback
+import pytorch_lightning as pl
 
 
-class PlotTestInstancesCallback(Callback):
+class PlotTestInstancesCallback(pl.Callback):
     def __init__(self, feature_indices):
         super(PlotTestInstancesCallback, self).__init__()
         self.feature_indices = feature_indices
@@ -26,24 +27,32 @@ class PlotTestInstancesCallback(Callback):
                                         fig, close=True)
 
 
-class PlotTestResultsCallback(Callback):
-    def __init__(self, feature_indices):
+class PlotTestResultsCallback(pl.Callback):
+    def __init__(self):
         super(PlotTestResultsCallback, self).__init__()
-        self.feature_indices = feature_indices
+        self.ground_truths = []
+        self.predictions = []
 
-    def on_test_epoch_end(self, trainer, pl_module, outputs):
-        # outputs is a list
+    def on_test_start(self, trainer, pl_module):
+        self.ground_truths.clear()
+        self.predictions.clear()
+
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+        predictions, targets = outputs['outputs'], outputs['targets']
+        self.ground_truths.append(targets[:, 0, :].detach().cpu().numpy())
+        self.predictions.append(predictions[:, 0, :].detach().cpu().numpy())
+
+    def on_test_epoch_end(self, trainer, pl_module):
+        ground_truth = np.concatenate(self.ground_truths, axis=0)
+        predictions = np.concatenate(self.predictions, axis=0)
         tensorboard = pl_module.logger.experiment
-        predictions = torch.tensor([output['outputs'] for output in outputs])
-        targets = torch.tensor([output['targets'] for output in outputs])
-        for i in range(targets[0].size(0)):
-            for feature_idx in self.feature_indices:
-                plt.clf()
-                plt.rcParams['font.family'] = 'Times New Roman'
-                fig = plt.figure(figsize=(7, 2), dpi=300)
-                plt.plot(targets[:, i, 0, feature_idx], color='dimgray', linestyle='-', label='Ground truth')
-                plt.plot(predictions[:, i, 0, feature_idx], color='deepskyblue', linestyle='-', label='Predictions')
-                plt.legend(locs='best', fontsize=10)
-                plt.xlabel('Time step')
-                plt.ylabel('Value of feature ' + str(feature_idx))
-                tensorboard.add_figure('Prediction result of feature ' + str(feature_idx), fig, close=True)
+        for i in range(ground_truth.shape[1]):
+            plt.clf()
+            plt.rcParams['font.family'] = 'Times New Roman'
+            fig = plt.figure(figsize=(7, 2), dpi=300)
+            plt.plot(ground_truth[:, i], color='dimgray', linestyle='-', label='Ground truth')
+            plt.plot(predictions[:, i], color='deepskyblue', linestyle='-', label='Predictions')
+            plt.legend(loc='best', fontsize=10)
+            plt.xlabel('Time step')
+            plt.ylabel('Value of feature ' + str(i))
+            tensorboard.add_figure('Prediction result of feature ' + str(i), fig, close=True)

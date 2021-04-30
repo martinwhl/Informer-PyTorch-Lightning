@@ -65,7 +65,7 @@ def main(args):
     if args.plot_instances:
         callbacks.append(utils.callbacks.PlotTestInstancesCallback(list(range(0, dm.num_features))))
     if args.plot_results:
-        callbacks.append(utils.callbacks.PlotTestResultsCallback(list(range(0, dm.num_features))))
+        callbacks.append(utils.callbacks.PlotTestResultsCallback())
     if args.save_results_path is not None:
         callbacks.append(utils.callbacks.SaveTestResultsCallback(args.save_results_path))
 

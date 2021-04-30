@@ -9,7 +9,7 @@ This is a **reorganized** implementation of [Informer](https://arxiv.org/2012.07
 * scikit-learn
 * torch
 * torchmetrics>=0.3
-* pytorch-lightning>=1.3
+* pytorch-lightning>=1.2.8
 
 ## Model Training
 
