@@ -12,7 +12,7 @@ class InformerForecastTask(pl.LightningModule):
                  inverse_scaling=False, scaler=None, **kwargs):
         super(InformerForecastTask, self).__init__()
         self.model = model
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['model', 'scaler'])
         metrics = torchmetrics.MetricCollection([
             torchmetrics.MeanSquaredError(),
             torchmetrics.MeanAbsoluteError()
