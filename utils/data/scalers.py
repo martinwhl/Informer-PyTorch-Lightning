@@ -24,12 +24,12 @@ class StandardScaler(Scaler):
     def __init__(self):
         self.mean = None
         self.std = None
-        self._device = torch.device('cpu')
+        self._device = torch.device("cpu")
 
     def fit(self, x):
         self.mean = x.mean(0, keepdim=True)
         self.std = x.std(0, unbiased=False, keepdim=True)
-    
+
     def transform(self, x):
         x -= self.mean
         x /= self.std
@@ -53,7 +53,7 @@ class StandardScaler(Scaler):
     @property
     def device(self):
         return self._device
-    
+
     @device.setter
     def device(self, new_device):
         self.to(self, new_device)

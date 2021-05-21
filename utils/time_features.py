@@ -12,7 +12,7 @@ class TimeFeature(ABC):
         pass
 
     def __repr__(self):
-        return self.__class__.__name__ + '()'
+        return self.__class__.__name__ + "()"
 
 
 class SecondOfMinute(TimeFeature):
@@ -68,13 +68,21 @@ def time_features_from_frequency(frequency: str) -> List[TimeFeature]:
         offsets.BusinessDay: [DayOfWeek, DayOfMonth, DayOfYear],
         offsets.Hour: [HourOfDay, DayOfWeek, DayOfMonth, DayOfYear],
         offsets.Minute: [MinuteOfHour, HourOfDay, DayOfWeek, DayOfMonth, DayOfYear],
-        offsets.Second: [SecondOfMinute, MinuteOfHour, HourOfDay, DayOfWeek, DayOfMonth, DayOfYear]
+        offsets.Second: [
+            SecondOfMinute,
+            MinuteOfHour,
+            HourOfDay,
+            DayOfWeek,
+            DayOfMonth,
+            DayOfYear,
+        ],
     }
     offset = to_offset(frequency)
     for offset_type, feature_classes in features_by_offsets.items():
         if isinstance(offset, offset_type):
             return [cls() for cls in feature_classes]
-    raise RuntimeError(f"""
+    raise RuntimeError(
+        f"""
     Unsupported frequency {frequency}
     The following frequencies are supported:
         Y   - yearly
@@ -87,26 +95,30 @@ def time_features_from_frequency(frequency: str) -> List[TimeFeature]:
         T   - minutely
             alias: min
         S   - secondly
-    """)
+    """
+    )
 
-def time_features(dates, time_encoding=True, frequency: str='h'):
-    if time_encoding == False:
-        dates['month'] = dates.date.apply(lambda row: row.month, 1)
-        dates['day'] = dates.date.apply(lambda row: row.day, 1)
-        dates['weekday'] = dates.date.apply(lambda row: row.weekday(), 1)
-        dates['hour'] = dates.date.apply(lambda row: row.hour, 1)
-        if frequency == 't':
-            dates['minute'] = dates.date.apply(lambda row: row.minute, 1)
-            dates['minute'] = dates.minute.map(lambda x: x // 15)
+
+def time_features(dates, time_encoding=True, frequency: str = "h"):
+    if not time_encoding:
+        dates["month"] = dates.date.apply(lambda row: row.month, 1)
+        dates["day"] = dates.date.apply(lambda row: row.day, 1)
+        dates["weekday"] = dates.date.apply(lambda row: row.weekday(), 1)
+        dates["hour"] = dates.date.apply(lambda row: row.hour, 1)
+        if frequency == "t":
+            dates["minute"] = dates.date.apply(lambda row: row.minute, 1)
+            dates["minute"] = dates.minute.map(lambda x: x // 15)
         FREQUENCY_DICT = {
-            'y': [],
-            'm': ['month'],
-            'w': ['month'],
-            'd': ['month', 'day', 'weekday'],
-            'b': ['month', 'day', 'weekday'],
-            'h': ['month', 'day', 'weekday', 'hour'],
-            't': ['month', 'day', 'weekday', 'hour', 'minute']
+            "y": [],
+            "m": ["month"],
+            "w": ["month"],
+            "d": ["month", "day", "weekday"],
+            "b": ["month", "day", "weekday"],
+            "h": ["month", "day", "weekday", "hour"],
+            "t": ["month", "day", "weekday", "hour", "minute"],
         }
         return dates[FREQUENCY_DICT[frequency.lower()]].values
     dates = pd.to_datetime(dates.date.values)
-    return np.vstack([feat(dates) for feat in time_features_from_frequency(frequency)]).transpose(1, 0)
+    return np.vstack(
+        [feat(dates) for feat in time_features_from_frequency(frequency)]
+    ).transpose(1, 0)

@@ -9,22 +9,40 @@ class PlotTestInstancesCallback(pl.Callback):
         super(PlotTestInstancesCallback, self).__init__()
         self.feature_indices = feature_indices
 
-    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+    def on_test_batch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+    ):
         tensorboard = pl_module.logger.experiment
-        predictions = outputs['outputs']
-        targets = outputs['targets']
+        predictions = outputs["outputs"]
+        targets = outputs["targets"]
         for i in range(targets.size(0)):
             for feature_idx in self.feature_indices:
                 plt.clf()
-                plt.rcParams['font.family'] = 'Times New Roman'
+                plt.rcParams["font.family"] = "Times New Roman"
                 fig = plt.figure(figsize=(7, 2), dpi=300)
-                plt.plot(targets[i, :, feature_idx].cpu(), color='dimgray', linestyle='-', label='Ground truth')
-                plt.plot(predictions[i, :, feature_idx].cpu(), color='deepskyblue', linestyle='-', label='Predictions')
-                plt.legend(loc='best', fontsize=10)
-                plt.xlabel('Time step')
-                plt.ylabel('Value of feature ' + str(feature_idx))
-                tensorboard.add_figure('Prediction result of feature ' + str(feature_idx) +', instance ' + str(i),
-                                        fig, close=True)
+                plt.plot(
+                    targets[i, :, feature_idx].cpu(),
+                    color="dimgray",
+                    linestyle="-",
+                    label="Ground truth",
+                )
+                plt.plot(
+                    predictions[i, :, feature_idx].cpu(),
+                    color="deepskyblue",
+                    linestyle="-",
+                    label="Predictions",
+                )
+                plt.legend(loc="best", fontsize=10)
+                plt.xlabel("Time step")
+                plt.ylabel("Value of feature " + str(feature_idx))
+                tensorboard.add_figure(
+                    "Prediction result of feature "
+                    + str(feature_idx)
+                    + ", instance "
+                    + str(i),
+                    fig,
+                    close=True,
+                )
 
 
 class PlotTestResultsCallback(pl.Callback):
@@ -37,8 +55,10 @@ class PlotTestResultsCallback(pl.Callback):
         self.ground_truths.clear()
         self.predictions.clear()
 
-    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
-        predictions, targets = outputs['outputs'], outputs['targets']
+    def on_test_batch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+    ):
+        predictions, targets = outputs["outputs"], outputs["targets"]
         self.ground_truths.append(targets[:, 0, :].detach().cpu().numpy())
         self.predictions.append(predictions[:, 0, :].detach().cpu().numpy())
 
@@ -48,11 +68,20 @@ class PlotTestResultsCallback(pl.Callback):
         tensorboard = pl_module.logger.experiment
         for i in range(ground_truth.shape[1]):
             plt.clf()
-            plt.rcParams['font.family'] = 'Times New Roman'
+            plt.rcParams["font.family"] = "Times New Roman"
             fig = plt.figure(figsize=(7, 2), dpi=300)
-            plt.plot(ground_truth[:, i], color='dimgray', linestyle='-', label='Ground truth')
-            plt.plot(predictions[:, i], color='deepskyblue', linestyle='-', label='Predictions')
-            plt.legend(loc='best', fontsize=10)
-            plt.xlabel('Time step')
-            plt.ylabel('Value of feature ' + str(i))
-            tensorboard.add_figure('Prediction result of feature ' + str(i), fig, close=True)
+            plt.plot(
+                ground_truth[:, i], color="dimgray", linestyle="-", label="Ground truth"
+            )
+            plt.plot(
+                predictions[:, i],
+                color="deepskyblue",
+                linestyle="-",
+                label="Predictions",
+            )
+            plt.legend(loc="best", fontsize=10)
+            plt.xlabel("Time step")
+            plt.ylabel("Value of feature " + str(i))
+            tensorboard.add_figure(
+                "Prediction result of feature " + str(i), fig, close=True
+            )

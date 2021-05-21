@@ -9,25 +9,34 @@ class PositionalEmbedding(nn.Module):
         embedding = torch.zeros(max_length, d_model)
 
         position = torch.arange(0, max_length).float().unsqueeze(1)
-        div_term = (torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model)).exp()
+        div_term = (
+            torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model)
+        ).exp()
 
         embedding[:, 0::2] = torch.sin(position * div_term)
         embedding[:, 1::2] = torch.cos(position * div_term)
 
         embedding = embedding.unsqueeze(0)
-        self.register_buffer('embedding', embedding)
+        self.register_buffer("embedding", embedding)
 
     def forward(self, x):
-        return self.embedding[:, :x.size(1)]
+        return self.embedding[:, : x.size(1)]
 
 
 class TokenEmbedding(nn.Module):
     def __init__(self, c_in, d_model):
         super(TokenEmbedding, self).__init__()
-        padding = 1 if torch.__version__ >= '1.5.0' else 2
-        self.token_conv = nn.Conv1d(in_channels=c_in, out_channels=d_model, kernel_size=3,
-                                    padding=padding, padding_mode='circular')
-        nn.init.kaiming_normal_(self.token_conv.weight, mode='fan_in', nonlinearity='leaky_relu')
+        padding = 1 if torch.__version__ >= "1.5.0" else 2
+        self.token_conv = nn.Conv1d(
+            in_channels=c_in,
+            out_channels=d_model,
+            kernel_size=3,
+            padding=padding,
+            padding_mode="circular",
+        )
+        nn.init.kaiming_normal_(
+            self.token_conv.weight, mode="fan_in", nonlinearity="leaky_relu"
+        )
 
     def forward(self, x):
         return self.token_conv(x.permute(0, 2, 1)).transpose(1, 2)
@@ -39,7 +48,9 @@ class FixedEmbedding(nn.Module):
         weight = torch.zeros(c_in, d_model)
 
         position = torch.arange(0, c_in).float().unsqueeze(1)
-        div_term = (torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model)).exp()
+        div_term = (
+            torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model)
+        ).exp()
 
         weight[:, 0::2] = torch.sin(position * div_term)
         weight[:, 1::2] = torch.cos(position * div_term)
@@ -52,7 +63,7 @@ class FixedEmbedding(nn.Module):
 
 
 class TemporalEmbedding(nn.Module):
-    def __init__(self, d_model, embedding_type='fixed', frequency='h'):
+    def __init__(self, d_model, embedding_type="fixed", frequency="h"):
         super(TemporalEmbedding, self).__init__()
 
         MINUTE_SIZE = 4
@@ -61,8 +72,8 @@ class TemporalEmbedding(nn.Module):
         DAY_SIZE = 32
         MONTH_SIZE = 13
 
-        Embedding = FixedEmbedding if embedding_type == 'fixed' else nn.Embedding
-        if frequency == 't':
+        Embedding = FixedEmbedding if embedding_type == "fixed" else nn.Embedding
+        if frequency == "t":
             self.minute_embedding = Embedding(MINUTE_SIZE, d_model)
         self.hour_embedding = Embedding(HOUR_SIZE, d_model)
         self.weekday_embedding = Embedding(WEEKDAY_SIZE, d_model)
@@ -72,7 +83,11 @@ class TemporalEmbedding(nn.Module):
     def forward(self, x):
         x = x.long()
 
-        minute_x = self.minute_embedding(x[:, :, 4]) if hasattr(self, 'minute_embedding') else 0.
+        minute_x = (
+            self.minute_embedding(x[:, :, 4])
+            if hasattr(self, "minute_embedding")
+            else 0.0
+        )
         hour_x = self.hour_embedding(x[:, :, 3])
         weekday_x = self.weekday_embedding(x[:, :, 2])
         day_x = self.day_embedding(x[:, :, 1])
@@ -82,10 +97,10 @@ class TemporalEmbedding(nn.Module):
 
 
 class TimeFeatureEmbedding(nn.Module):
-    def __init__(self, d_model, frequency='h'):
+    def __init__(self, d_model, frequency="h"):
         super(TimeFeatureEmbedding, self).__init__()
-    
-        FREQUENCY_MAP = {'h': 4, 't': 5, 's': 6, 'm': 1, 'a': 1, 'w': 2, 'd': 3, 'b': 3}
+
+        FREQUENCY_MAP = {"h": 4, "t": 5, "s": 6, "m": 1, "a": 1, "w": 2, "d": 3, "b": 3}
         d_input = FREQUENCY_MAP[frequency]
         self.embedding = nn.Linear(d_input, d_model)
 
@@ -94,19 +109,26 @@ class TimeFeatureEmbedding(nn.Module):
 
 
 class DataEmbedding(nn.Module):
-    def __init__(self, c_in, d_model, embedding_type='fixed', frequency='h', dropout=0.1):
+    def __init__(
+        self, c_in, d_model, embedding_type="fixed", frequency="h", dropout=0.1
+    ):
         super(DataEmbedding, self).__init__()
 
         self.value_embedding = TokenEmbedding(c_in, d_model)
         self.position_embedding = PositionalEmbedding(d_model)
-        if embedding_type != 'timefeature':
-            self.temporal_embedding = TemporalEmbedding(d_model, embedding_type=embedding_type, 
-                                                        frequency=frequency)
+        if embedding_type != "timefeature":
+            self.temporal_embedding = TemporalEmbedding(
+                d_model, embedding_type=embedding_type, frequency=frequency
+            )
         else:
             self.temporal_embedding = TimeFeatureEmbedding(d_model, frequency=frequency)
-    
+
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, x_mark):
-        x = self.value_embedding(x) + self.position_embedding(x) + self.temporal_embedding(x_mark)
+        x = (
+            self.value_embedding(x)
+            + self.position_embedding(x)
+            + self.temporal_embedding(x_mark)
+        )
         return self.dropout(x)
