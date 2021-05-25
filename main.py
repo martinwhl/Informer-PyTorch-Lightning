@@ -28,9 +28,7 @@ def main(args):
         # https://github.com/zhouhaoyi/Informer2020/blob/main/main_informer.py#L44
         args.max_epochs = 6
 
-    dm = utils.data.ETTDataModule(
-        data_path=DATA_DICT.get(args.data).get("path"), **vars(args)
-    )
+    dm = utils.data.ETTDataModule(data_path=DATA_DICT.get(args.data).get("path"), **vars(args))
     dm.setup(stage="fit")
 
     args.enc_in = args.dec_in = 1 if args.variate == "u" else dm.num_features
@@ -38,27 +36,19 @@ def main(args):
 
     rank_zero_info(vars(args))
 
-    model = MODEL_DICT.get(args.model_name)(
-        out_len=args.pred_len, distil=(not args.no_distil), **vars(args)
-    )
-    task = tasks.InformerForecastTask(
-        model, scaler=copy.deepcopy(dm.scaler), **vars(args)
-    )
+    model = MODEL_DICT.get(args.model_name)(out_len=args.pred_len, distil=(not args.no_distil), **vars(args))
+    task = tasks.InformerForecastTask(model, scaler=copy.deepcopy(dm.scaler), **vars(args))
 
     callbacks = [
         pl.callbacks.ModelCheckpoint(monitor="Val_Loss"),
         pl.callbacks.EarlyStopping(monitor="Val_Loss", patience=args.patience),
     ]
     if args.plot_instances:
-        callbacks.append(
-            utils.callbacks.PlotTestInstancesCallback(list(range(0, dm.num_features)))
-        )
+        callbacks.append(utils.callbacks.PlotTestInstancesCallback(list(range(0, dm.num_features))))
     if args.plot_results:
         callbacks.append(utils.callbacks.PlotTestResultsCallback())
     if args.save_results_path is not None:
-        callbacks.append(
-            utils.callbacks.SaveTestResultsCallback(args.save_results_path)
-        )
+        callbacks.append(utils.callbacks.SaveTestResultsCallback(args.save_results_path))
 
     trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks)
     trainer.fit(task, dm)

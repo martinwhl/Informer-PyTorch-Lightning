@@ -93,9 +93,7 @@ class ETTDataset(Dataset):
         df_timestamp = df[["date"]][begin_indices[self.split] : end_indices[self.split]]
         df_timestamp["date"] = pd.to_datetime(df_timestamp.date)
 
-        timestamp_data = time_features(
-            df_timestamp, time_encoding=self.time_encoding, frequency=self.frequency
-        )
+        timestamp_data = time_features(df_timestamp, time_encoding=self.time_encoding, frequency=self.frequency)
 
         self.time_series = torch.FloatTensor(data[begin_index:end_index])
         self.timestamp = torch.FloatTensor(timestamp_data)

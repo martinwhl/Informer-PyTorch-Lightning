@@ -9,9 +9,7 @@ class PlotTestInstancesCallback(pl.Callback):
         super(PlotTestInstancesCallback, self).__init__()
         self.feature_indices = feature_indices
 
-    def on_test_batch_end(
-        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
-    ):
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         tensorboard = pl_module.logger.experiment
         predictions = outputs["outputs"]
         targets = outputs["targets"]
@@ -36,10 +34,7 @@ class PlotTestInstancesCallback(pl.Callback):
                 plt.xlabel("Time step")
                 plt.ylabel("Value of feature " + str(feature_idx))
                 tensorboard.add_figure(
-                    "Prediction result of feature "
-                    + str(feature_idx)
-                    + ", instance "
-                    + str(i),
+                    "Prediction result of feature " + str(feature_idx) + ", instance " + str(i),
                     fig,
                     close=True,
                 )
@@ -55,9 +50,7 @@ class PlotTestResultsCallback(pl.Callback):
         self.ground_truths.clear()
         self.predictions.clear()
 
-    def on_test_batch_end(
-        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
-    ):
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         predictions, targets = outputs["outputs"], outputs["targets"]
         self.ground_truths.append(targets[:, 0, :].detach().cpu().numpy())
         self.predictions.append(predictions[:, 0, :].detach().cpu().numpy())
@@ -70,9 +63,7 @@ class PlotTestResultsCallback(pl.Callback):
             plt.clf()
             plt.rcParams["font.family"] = "Times New Roman"
             fig = plt.figure(figsize=(7, 2), dpi=300)
-            plt.plot(
-                ground_truth[:, i], color="dimgray", linestyle="-", label="Ground truth"
-            )
+            plt.plot(ground_truth[:, i], color="dimgray", linestyle="-", label="Ground truth")
             plt.plot(
                 predictions[:, i],
                 color="deepskyblue",
@@ -82,6 +73,4 @@ class PlotTestResultsCallback(pl.Callback):
             plt.legend(loc="best", fontsize=10)
             plt.xlabel("Time step")
             plt.ylabel("Value of feature " + str(i))
-            tensorboard.add_figure(
-                "Prediction result of feature " + str(i), fig, close=True
-            )
+            tensorboard.add_figure("Prediction result of feature " + str(i), fig, close=True)

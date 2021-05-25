@@ -24,20 +24,14 @@ class InformerForecastTask(pl.LightningModule):
         super(InformerForecastTask, self).__init__()
         self.model = model
         self.save_hyperparameters()
-        metrics = torchmetrics.MetricCollection(
-            [torchmetrics.MeanSquaredError(), torchmetrics.MeanAbsoluteError()]
-        )
+        metrics = torchmetrics.MetricCollection([torchmetrics.MeanSquaredError(), torchmetrics.MeanAbsoluteError()])
         self.val_metrics = metrics.clone(prefix="Val_")
         self.test_metrics = metrics.clone(prefix="Test_")
         self.scaler = scaler
 
     def forward(self, batch_x, batch_y, batch_x_mark, batch_y_mark):
-        decoder_input = torch.zeros_like(
-            batch_y[:, -self.hparams.pred_len :, :]
-        ).type_as(batch_y)
-        decoder_input = torch.cat(
-            [batch_y[:, : self.hparams.label_len, :], decoder_input], dim=1
-        )
+        decoder_input = torch.zeros_like(batch_y[:, -self.hparams.pred_len :, :]).type_as(batch_y)
+        decoder_input = torch.cat([batch_y[:, : self.hparams.label_len, :], decoder_input], dim=1)
         outputs = self.model(batch_x, batch_x_mark, decoder_input, batch_y_mark)
         if self.hparams.output_attention:
             outputs = outputs[0]
@@ -104,13 +98,9 @@ class InformerForecastTask(pl.LightningModule):
                     return 0.2
                 return 1.0
 
-            scheduler = torch.optim.lr_scheduler.MultiplicativeLR(
-                optimizer, lr_lambda=[two_step_exp]
-            )
+            scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=[two_step_exp])
         else:
-            raise RuntimeError(
-                "The scheduler {self.hparams.lr_scheduler} is not implemented."
-            )
+            raise RuntimeError("The scheduler {self.hparams.lr_scheduler} is not implemented.")
         return [optimizer], [scheduler]
 
     @staticmethod

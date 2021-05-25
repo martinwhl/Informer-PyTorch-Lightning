@@ -144,13 +144,7 @@ class ETTDataModule(pl.LightningDataModule):
             default=48,
             help="Start token length of Informer decoder",
         )
-        parser.add_argument(
-            "--pred_len", type=int, default=24, help="Prediction sequence length"
-        )
-        parser.add_argument(
-            "--batch_size", type=int, default=32, help="Batch size of the input data"
-        )
-        parser.add_argument(
-            "--num_workers", type=int, default=0, help="Number of workers of DataLoader"
-        )
+        parser.add_argument("--pred_len", type=int, default=24, help="Prediction sequence length")
+        parser.add_argument("--batch_size", type=int, default=32, help="Batch size of the input data")
+        parser.add_argument("--num_workers", type=int, default=0, help="Number of workers of DataLoader")
         return parser

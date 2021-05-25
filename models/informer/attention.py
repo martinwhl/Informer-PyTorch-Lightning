@@ -6,14 +6,7 @@ from models.informer.masking import triangular_causal_mask, prob_mask
 
 
 class FullAttention(nn.Module):
-    def __init__(
-        self,
-        mask_flag=True,
-        scale=None,
-        attention_dropout=0.1,
-        output_attention=False,
-        **kwargs
-    ):
+    def __init__(self, mask_flag=True, scale=None, attention_dropout=0.1, output_attention=False, **kwargs):
         super(FullAttention, self).__init__()
         self.mask_flag = mask_flag
         self.scale = scale
@@ -77,9 +70,7 @@ class ProbSparseAttention(nn.Module):
 
         context = self._get_initial_context(values, L_Q)
         # update the context with selected top_k queries
-        context, attention = self._update_context(
-            context, values, scores_top, index, L_Q, attention_mask
-        )
+        context, attention = self._update_context(context, values, scores_top, index, L_Q, attention_mask)
 
         return context.contiguous(), attention
 
@@ -89,9 +80,7 @@ class ProbSparseAttention(nn.Module):
 
         # calculate the sampled Q_K
         K_expand = keys.unsqueeze(-3).expand(B, H, L_Q, L_K, E)
-        index_sample = torch.randint(
-            L_K, (L_Q, sample_k)
-        )  # real U = U_part(factor * ln(L_K)) * L_Q
+        index_sample = torch.randint(L_K, (L_Q, sample_k))  # real U = U_part(factor * ln(L_K)) * L_Q
         K_sample = K_expand[:, :, torch.arange(L_Q).unsqueeze(1), index_sample, :]
         Q_K_sample = (queries.unsqueeze(-2) @ K_sample.transpose(-2, -1)).squeeze()
 
@@ -100,9 +89,7 @@ class ProbSparseAttention(nn.Module):
         M_top = M.topk(n_top, sorted=False)[1]
 
         # use the reduced Q to calculate Q_K
-        Q_reduce = queries[
-            torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], M_top, :
-        ]  # factor * ln(L_Q)
+        Q_reduce = queries[torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], M_top, :]  # factor * ln(L_Q)
         Q_K = Q_reduce @ keys.transpose(-2, -1)  # factor * ln(L_Q) * L_K
 
         return Q_K, M_top
@@ -126,14 +113,12 @@ class ProbSparseAttention(nn.Module):
 
         attention = torch.softmax(scores, dim=-1)
 
-        context[
-            torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], index, :
-        ] = (attention @ values).type_as(context)
+        context[torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], index, :] = (
+            attention @ values
+        ).type_as(context)
         if self.output_attention:
             attentions = (torch.ones(B, H, L_V, L_V) / L_V).type_as(attention)
-            attentions[
-                torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], index, :
-            ] = attention
+            attentions[torch.arange(B)[:, None, None], torch.arange(H)[None, :, None], index, :] = attention
             return context, attentions
         return context, None
 

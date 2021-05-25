@@ -6,9 +6,7 @@ import torch.nn.functional as F
 class SelfAttentionDistil(nn.Module):
     def __init__(self, c_in):
         super(SelfAttentionDistil, self).__init__()
-        self.conv = nn.Conv1d(
-            c_in, c_in, kernel_size=3, padding=2, padding_mode="circular"
-        )
+        self.conv = nn.Conv1d(c_in, c_in, kernel_size=3, padding=2, padding_mode="circular")
         self.norm = nn.BatchNorm1d(c_in)
         self.activation = nn.ELU()
         self.max_pool = nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
@@ -49,17 +47,13 @@ class Encoder(nn.Module):
     def __init__(self, attention_layers, conv_layers=None, norm_layer=None):
         super(Encoder, self).__init__()
         self.attention_layers = nn.ModuleList(attention_layers)
-        self.conv_layers = (
-            nn.ModuleList(conv_layers) if conv_layers is not None else None
-        )
+        self.conv_layers = nn.ModuleList(conv_layers) if conv_layers is not None else None
         self.norm = norm_layer
 
     def forward(self, x, attention_mask=None):
         attentions = []
         if self.conv_layers is not None:
-            for attention_layer, conv_layer in zip(
-                self.attention_layers, self.conv_layers
-            ):
+            for attention_layer, conv_layer in zip(self.attention_layers, self.conv_layers):
                 x, attention = attention_layer(x, attention_mask=attention_mask)
                 x = conv_layer(x)
                 attentions.append(attention)

@@ -14,9 +14,7 @@ class SaveTestResultsCallback(pl.Callback):
         self.ground_truths.clear()
         self.predictions.clear()
 
-    def on_test_batch_end(
-        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
-    ):
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         predictions, targets = outputs["outputs"], outputs["targets"]
         self.ground_truths.append(targets[:, 0, :].detach().cpu().numpy())
         self.predictions.append(predictions[:, 0, :].detach().cpu().numpy())

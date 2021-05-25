@@ -38,12 +38,8 @@ class BaseInformer(nn.Module):
         self.attention_type = attention_type
         self.output_attention = output_attention
 
-        self.enc_embedding = DataEmbedding(
-            enc_in, d_model, embedding_type, frequency, dropout
-        )
-        self.dec_embedding = DataEmbedding(
-            dec_in, d_model, embedding_type, frequency, dropout
-        )
+        self.enc_embedding = DataEmbedding(enc_in, d_model, embedding_type, frequency, dropout)
+        self.dec_embedding = DataEmbedding(dec_in, d_model, embedding_type, frequency, dropout)
 
         Attention = ProbSparseAttention if attention_type == "prob" else FullAttention
 
@@ -98,9 +94,7 @@ class BaseInformer(nn.Module):
         enc_out, attentions = self.encoder(enc_out, attention_mask=enc_self_mask)
 
         dec_out = self.dec_embedding(x_dec, x_dec_mark)
-        dec_out = self.decoder(
-            dec_out, enc_out, x_mask=dec_self_mask, cross_mask=dec_enc_mask
-        )
+        dec_out = self.decoder(dec_out, enc_out, x_mask=dec_self_mask, cross_mask=dec_enc_mask)
         dec_out = self.projection(dec_out)
 
         if self.output_attention:
@@ -110,35 +104,21 @@ class BaseInformer(nn.Module):
     @staticmethod
     def add_model_specific_arguments(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument(
-            "--enc_in", type=int, default=7, help="Input size of encoder"
-        )
-        parser.add_argument(
-            "--dec_in", type=int, default=7, help="Input size of decoder"
-        )
+        parser.add_argument("--enc_in", type=int, default=7, help="Input size of encoder")
+        parser.add_argument("--dec_in", type=int, default=7, help="Input size of decoder")
         parser.add_argument("--c_out", type=int, default=7, help="Output size")
-        parser.add_argument(
-            "--d_model", type=int, default=512, help="Dimension of the model"
-        )
+        parser.add_argument("--d_model", type=int, default=512, help="Dimension of the model")
         parser.add_argument("--n_heads", type=int, default=8, help="Number of heads")
-        parser.add_argument(
-            "--num_encoder_layers", type=int, default=2, help="Number of encoder layers"
-        )
-        parser.add_argument(
-            "--num_decoder_layers", type=int, default=1, help="Number of decoder layers"
-        )
+        parser.add_argument("--num_encoder_layers", type=int, default=2, help="Number of encoder layers")
+        parser.add_argument("--num_decoder_layers", type=int, default=1, help="Number of decoder layers")
         parser.add_argument("--d_ff", type=int, default=2048, help="Dimension of FCN")
-        parser.add_argument(
-            "--factor", type=int, default=5, help="ProbSparse Attention factor"
-        )
+        parser.add_argument("--factor", type=int, default=5, help="ProbSparse Attention factor")
         parser.add_argument(
             "--no_distil",
             action="store_true",
             help="Whether to use distilling in the encoder",
         )
-        parser.add_argument(
-            "--dropout", type=float, default=0.05, help="Dropout probability"
-        )
+        parser.add_argument("--dropout", type=float, default=0.05, help="Dropout probability")
         parser.add_argument(
             "--attention",
             "--attn",
@@ -155,9 +135,7 @@ class BaseInformer(nn.Module):
             choices=["timefeature", "fixed", "learned"],
             help="Type of time features encoding",
         )
-        parser.add_argument(
-            "--activation", type=str, default="gelu", help="Activation function"
-        )
+        parser.add_argument("--activation", type=str, default="gelu", help="Activation function")
         parser.add_argument(
             "--output_attention",
             action="store_true",
@@ -233,9 +211,7 @@ class Informer(BaseInformer):
                 )
                 for _ in range(num_encoder_layers)
             ],
-            [SelfAttentionDistil(d_model) for _ in range(num_encoder_layers - 1)]
-            if distil
-            else None,
+            [SelfAttentionDistil(d_model) for _ in range(num_encoder_layers - 1)] if distil else None,
             nn.LayerNorm(d_model),
         )
 
@@ -304,9 +280,7 @@ class InformerStack(BaseInformer):
                     )
                     for _ in range(el)
                 ],
-                [SelfAttentionDistil(d_model) for _ in range(el - 1)]
-                if distil
-                else None,
+                [SelfAttentionDistil(d_model) for _ in range(el - 1)] if distil else None,
                 nn.LayerNorm(d_model),
             )
             for el in stacks
