@@ -53,7 +53,7 @@ def main(args):
 
     trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks)
     trainer.fit(task, dm)
-    results = trainer.test(task, datamodule=dm)
+    results = trainer.test()
     return results
 
 
