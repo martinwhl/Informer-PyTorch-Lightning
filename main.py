@@ -26,7 +26,7 @@ def main(args):
     args.time_encoding = args.embedding_type == "timefeature"
     if args.max_epochs is None:
         # follows the official implementation
-        # https://github.com/zhouhaoyi/Informer2020/blob/main/main_informer.py#L44
+        # https://github.com/zhouhaoyi/Informer2020/blob/main/main_informer.py#L46
         args.max_epochs = 6
 
     dm = utils.data.ETTDataModule(data_path=DATA_DICT.get(args.data).get("path"), **vars(args))

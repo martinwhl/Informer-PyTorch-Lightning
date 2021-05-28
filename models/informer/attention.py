@@ -72,7 +72,7 @@ class ProbSparseAttention(nn.Module):
         # update the context with selected top_k queries
         context, attention = self._update_context(context, values, scores_top, index, L_Q, attention_mask)
 
-        return context.contiguous(), attention
+        return context.transpose(2, 1).contiguous(), attention
 
     def _prob_QK(self, queries, keys, sample_k, n_top):
         B, H, L_K, E = keys.shape
@@ -124,7 +124,7 @@ class ProbSparseAttention(nn.Module):
 
 
 class AttentionLayer(nn.Module):
-    def __init__(self, attention, d_model, n_heads, d_keys=None, d_values=None):
+    def __init__(self, attention, d_model, n_heads, d_keys=None, d_values=None, mix=False):
         super(AttentionLayer, self).__init__()
         d_keys = d_keys or (d_model // n_heads)
         d_values = d_values or (d_model // n_heads)
@@ -136,6 +136,7 @@ class AttentionLayer(nn.Module):
         self.out_projection = nn.Linear(d_values * n_heads, d_model)
 
         self.n_heads = n_heads
+        self.mix = mix
 
     def forward(self, queries, keys, values, attention_mask):
         B, L, _ = queries.shape
@@ -147,6 +148,8 @@ class AttentionLayer(nn.Module):
         values = self.value_projection(values).view(B, S, H, -1)
 
         out, attention = self.inner_attention(queries, keys, values, attention_mask)
+        if self.mix:
+            out = out.transpose(2, 1).contiguous()
         out = out.view(B, L, -1)
 
         return self.out_projection(out), attention

@@ -14,6 +14,7 @@ class InformerForecastTask(pl.LightningModule):
         label_len,
         pred_len,
         variate,
+        padding=0,
         loss="mse",
         learning_rate=0.0001,
         lr_scheduler="exponential",
@@ -30,7 +31,10 @@ class InformerForecastTask(pl.LightningModule):
         self.scaler = scaler
 
     def forward(self, batch_x, batch_y, batch_x_mark, batch_y_mark):
-        decoder_input = torch.zeros_like(batch_y[:, -self.hparams.pred_len :, :]).type_as(batch_y)
+        if self.hparams.padding == 0:
+            decoder_input = torch.zeros((batch_y.size(0), self.hparams.pred_len, batch_y.size(-1))).type_as(batch_y)
+        else:  # self.hparams.padding == 1
+            decoder_input = torch.ones((batch_y.size(0), self.hparams.pred_len, batch_y.size(-1))).type_as(batch_y)
         decoder_input = torch.cat([batch_y[:, : self.hparams.label_len, :], decoder_input], dim=1)
         outputs = self.model(batch_x, batch_x_mark, decoder_input, batch_y_mark)
         if self.hparams.output_attention:
@@ -111,6 +115,13 @@ class InformerForecastTask(pl.LightningModule):
             type=str,
             default="informer",
             choices=["informer", "informer_stack"],
+        )
+        parser.add_argument(
+            "--padding",
+            type=int,
+            default=0,
+            choices=[0, 1],
+            help="Type of padding (zero-padding or one-padding)",
         )
         parser.add_argument(
             "--learning_rate",

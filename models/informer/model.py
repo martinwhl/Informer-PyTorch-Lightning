@@ -31,6 +31,7 @@ class BaseInformer(nn.Module):
         activation="gelu",
         output_attention=False,
         distil=True,
+        mix_attention=False,
         **kwargs
     ):
         super(BaseInformer, self).__init__()
@@ -49,24 +50,16 @@ class BaseInformer(nn.Module):
             [
                 DecoderLayer(
                     AttentionLayer(
-                        Attention(
-                            True,
-                            factor,
-                            attention_dropout=dropout,
-                            output_attention=False,
-                        ),
+                        Attention(True, factor, attention_dropout=dropout, output_attention=False),
                         d_model,
                         n_heads,
+                        mix=mix_attention,
                     ),
                     AttentionLayer(
-                        FullAttention(
-                            False,
-                            factor,
-                            attention_dropout=dropout,
-                            output_attention=False,
-                        ),
+                        FullAttention(False, factor, attention_dropout=dropout, output_attention=False),
                         d_model,
                         n_heads,
+                        mix=False,
                     ),
                     d_model,
                     d_ff,
@@ -142,9 +135,10 @@ class BaseInformer(nn.Module):
             help="Whether to output attention in the encoder",
         )
         parser.add_argument(
-            "--do_predict",
+            "--mix_attention",
+            "--mix",
             action="store_true",
-            help="Whether to predict unseen future data",
+            help="Whether to mix attention in generative decoder",
         )
         return parser
 
@@ -169,6 +163,7 @@ class Informer(BaseInformer):
         activation="gelu",
         output_attention=False,
         distil=True,
+        mix_attention=False,
         **kwargs
     ):
         super(Informer, self).__init__(
@@ -189,20 +184,17 @@ class Informer(BaseInformer):
             activation=activation,
             output_attention=output_attention,
             distil=distil,
+            mix_attention=mix_attention,
         )
         Attention = ProbSparseAttention if attention_type == "prob" else FullAttention
         self.encoder = Encoder(
             [
                 EncoderLayer(
                     AttentionLayer(
-                        Attention(
-                            False,
-                            factor,
-                            attention_dropout=dropout,
-                            output_attention=output_attention,
-                        ),
+                        Attention(False, factor, attention_dropout=dropout, output_attention=output_attention),
                         d_model,
                         n_heads,
+                        mix=False,
                     ),
                     d_model,
                     d_ff,
@@ -236,6 +228,7 @@ class InformerStack(BaseInformer):
         activation="gelu",
         output_attention=False,
         distil=True,
+        mix_attention=False,
         **kwargs
     ):
         super(InformerStack, self).__init__(
@@ -256,6 +249,7 @@ class InformerStack(BaseInformer):
             activation=activation,
             output_attention=output_attention,
             distil=distil,
+            mix_attention=mix_attention,
         )
         Attention = ProbSparseAttention if attention_type == "prob" else FullAttention
         stacks = list(range(num_encoder_layers, 2, -1))  # customize here
@@ -264,14 +258,10 @@ class InformerStack(BaseInformer):
                 [
                     EncoderLayer(
                         AttentionLayer(
-                            Attention(
-                                False,
-                                factor,
-                                attention_dropout=dropout,
-                                output_attention=output_attention,
-                            ),
+                            Attention(False, factor, attention_dropout=dropout, output_attention=output_attention),
                             d_model,
                             n_heads,
+                            mix=False,
                         ),
                         d_model,
                         d_ff,
