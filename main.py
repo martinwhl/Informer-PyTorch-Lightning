@@ -6,6 +6,7 @@ import models
 import tasks
 import utils.callbacks
 import utils.data
+import utils.email
 import utils.logging
 from pytorch_lightning.utilities import rank_zero_info
 
@@ -123,10 +124,10 @@ if __name__ == "__main__":
         traceback.print_exc()
         if args.send_email:
             tb = traceback.format_exc()
-            subject = "[Email Bot][❌] " + "-".join([args.settings, args.model_name, args.data])
+            subject = "[Email Bot][❌] " + "-".join([args.model_name, args.data])
             utils.email.send_email(tb, subject)
         exit(-1)
 
     if args.send_email:
-        subject = "[Email Bot][✅] " + "-".join([args.settings, args.model_name, args.data])
+        subject = "[Email Bot][✅] " + "-".join([args.model_name, args.data])
         utils.email.send_experiment_results_email(args, results, subject=subject)
