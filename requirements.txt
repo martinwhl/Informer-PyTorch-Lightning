@@ -1,6 +1,6 @@
 numpy
 pandas
-scikit-learn
+matplotlib
 torch
 torchmetrics>=0.6
 pytorch-lightning>=1.5.1
