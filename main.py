@@ -31,7 +31,7 @@ def main(args):
         args.max_epochs = 6
 
     dm = utils.data.ETTDataModule(data_path=DATA_DICT.get(args.data).get("path"), **vars(args))
-    dm.setup(stage="fit")
+    dm.setup()
 
     args.enc_in = args.dec_in = 1 if args.variate == "u" else dm.num_features
     args.c_out = dm.num_features if args.variate == "m" else 1
