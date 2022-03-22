@@ -61,8 +61,8 @@ class InformerForecastTask(pl.LightningModule):
         if self.hparams.inverse_scaling and self.scaler is not None:
             outputs = self.scaler.inverse_transform(outputs)
             batch_y = self.scaler.inverse_transform(batch_y)
-        metrics = self.val_metrics(outputs, batch_y)
-        self.log_dict(metrics)
+        self.val_metrics(outputs, batch_y)
+        self.log_dict(self.val_metrics)
         return {"outputs": outputs, "targets": batch_y}
 
     def test_step(self, batch, batch_idx):
@@ -70,8 +70,8 @@ class InformerForecastTask(pl.LightningModule):
         if self.hparams.inverse_scaling and self.scaler is not None:
             outputs = self.scaler.inverse_transform(outputs)
             batch_y = self.scaler.inverse_transform(batch_y)
-        metrics = self.test_metrics(outputs, batch_y)
-        self.log_dict(metrics)
+        self.test_metrics(outputs, batch_y)
+        self.log_dict(self.test_metrics)
         return {"outputs": outputs, "targets": batch_y}
 
     def on_fit_start(self):
