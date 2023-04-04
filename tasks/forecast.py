@@ -1,30 +1,29 @@
-import argparse
 import torch
 import torch.nn.functional as F
 import torch.optim
-import pytorch_lightning as pl
+import lightning as L
 import torchmetrics
 
 
-class InformerForecastTask(pl.LightningModule):
+class InformerForecastTask(L.LightningModule):
     def __init__(
         self,
-        model,
-        seq_len,
-        label_len,
-        pred_len,
-        variate,
-        padding=0,
-        loss="mse",
-        learning_rate=0.0001,
-        lr_scheduler="exponential",
-        inverse_scaling=False,
+        model: torch.nn.Module,
+        seq_len: int,
+        label_len: int,
+        pred_len: int,
+        variate: str,
+        padding: int = 0,
+        loss: str = "mse",
+        learning_rate: float = 0.0001,
+        lr_scheduler: str = "exponential",
+        inverse_scaling: bool = False,
         scaler=None,
         **kwargs
     ):
         super(InformerForecastTask, self).__init__()
         self.model = model
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
         metrics = torchmetrics.MetricCollection([torchmetrics.MeanSquaredError(), torchmetrics.MeanAbsoluteError()])
         self.val_metrics = metrics.clone(prefix="Val_")
         self.test_metrics = metrics.clone(prefix="Test_")
@@ -37,7 +36,7 @@ class InformerForecastTask(pl.LightningModule):
             decoder_input = torch.ones((batch_y.size(0), self.hparams.pred_len, batch_y.size(-1))).type_as(batch_y)
         decoder_input = torch.cat([batch_y[:, : self.hparams.label_len, :], decoder_input], dim=1)
         outputs = self.model(batch_x, batch_x_mark, decoder_input, batch_y_mark)
-        if self.hparams.output_attention:
+        if self.model.output_attention:
             outputs = outputs[0]
         return outputs
 
@@ -106,47 +105,3 @@ class InformerForecastTask(pl.LightningModule):
         else:
             raise RuntimeError("The scheduler {self.hparams.lr_scheduler} is not implemented.")
         return [optimizer], [scheduler]
-
-    @staticmethod
-    def add_task_specific_arguments(parent_parser):
-        parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument(
-            "--model_type",
-            type=str,
-            default="informer",
-            choices=["informer", "informer_stack"],
-        )
-        parser.add_argument(
-            "--padding",
-            type=int,
-            default=0,
-            choices=[0, 1],
-            help="Type of padding (zero-padding or one-padding)",
-        )
-        parser.add_argument(
-            "--learning_rate",
-            "--lr",
-            type=float,
-            default=0.0001,
-            help="Learning rate of the optimizer",
-        )
-        parser.add_argument(
-            "--lr_scheduler",
-            type=str,
-            default="exponential",
-            choices=["exponential", "two_step_exp"],
-        )
-        parser.add_argument(
-            "--loss",
-            type=str,
-            default="mse",
-            choices=["mse"],
-            help="Name of loss function",
-        )
-        parser.add_argument(
-            "--inverse_scaling",
-            "--inverse",
-            action="store_true",
-            help="Scale back to original values",
-        )
-        return parser

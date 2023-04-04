@@ -1,4 +1,3 @@
-import argparse
 import torch.nn as nn
 from models.informer.attention import FullAttention, ProbSparseAttention, AttentionLayer
 from models.informer.embedding import DataEmbedding
@@ -14,17 +13,17 @@ from models.informer.decoder import Decoder, DecoderLayer
 class BaseInformer(nn.Module):
     def __init__(
         self,
-        enc_in,
-        dec_in,
-        c_out,
-        out_len,
+        enc_in=7,
+        dec_in=7,
+        c_out=7,
+        out_len=24,
         factor=5,
         d_model=512,
         n_heads=8,
-        num_encoder_layers=3,
-        num_decoder_layers=2,
-        d_ff=512,
-        dropout=0.0,
+        num_encoder_layers=2,
+        num_decoder_layers=1,
+        d_ff=2048,
+        dropout=0.05,
         attention_type="prob",
         embedding_type="fixed",
         frequency="h",
@@ -94,69 +93,21 @@ class BaseInformer(nn.Module):
             return dec_out[:, -self.pred_len :, :], attentions
         return dec_out[:, -self.pred_len :, :]
 
-    @staticmethod
-    def add_model_specific_arguments(parent_parser):
-        parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument("--enc_in", type=int, default=7, help="Input size of encoder")
-        parser.add_argument("--dec_in", type=int, default=7, help="Input size of decoder")
-        parser.add_argument("--c_out", type=int, default=7, help="Output size")
-        parser.add_argument("--d_model", type=int, default=512, help="Dimension of the model")
-        parser.add_argument("--n_heads", type=int, default=8, help="Number of heads")
-        parser.add_argument("--num_encoder_layers", type=int, default=2, help="Number of encoder layers")
-        parser.add_argument("--num_decoder_layers", type=int, default=1, help="Number of decoder layers")
-        parser.add_argument("--d_ff", type=int, default=2048, help="Dimension of FCN")
-        parser.add_argument("--factor", type=int, default=5, help="ProbSparse Attention factor")
-        parser.add_argument(
-            "--no_distil",
-            action="store_true",
-            help="Whether to use distilling in the encoder",
-        )
-        parser.add_argument("--dropout", type=float, default=0.05, help="Dropout probability")
-        parser.add_argument(
-            "--attention",
-            "--attn",
-            type=str,
-            default="prob",
-            choices=["prob", "full"],
-            help="Type of attention used in the encoder",
-        )
-        parser.add_argument(
-            "--embedding_type",
-            "--embed",
-            type=str,
-            default="timefeature",
-            choices=["timefeature", "fixed", "learned"],
-            help="Type of time features encoding",
-        )
-        parser.add_argument("--activation", type=str, default="gelu", help="Activation function")
-        parser.add_argument(
-            "--output_attention",
-            action="store_true",
-            help="Whether to output attention in the encoder",
-        )
-        parser.add_argument(
-            "--mix_attention",
-            "--mix",
-            action="store_true",
-            help="Whether to mix attention in generative decoder",
-        )
-        return parser
-
 
 class Informer(BaseInformer):
     def __init__(
         self,
-        enc_in,
-        dec_in,
-        c_out,
-        out_len,
+        enc_in=7,
+        dec_in=7,
+        c_out=7,
+        out_len=24,
         factor=5,
         d_model=512,
         n_heads=8,
-        num_encoder_layers=3,
-        num_decoder_layers=2,
-        d_ff=512,
-        dropout=0.0,
+        num_encoder_layers=2,
+        num_decoder_layers=1,
+        d_ff=2048,
+        dropout=0.05,
         attention_type="prob",
         embedding_type="fixed",
         frequency="h",
@@ -211,17 +162,17 @@ class Informer(BaseInformer):
 class InformerStack(BaseInformer):
     def __init__(
         self,
-        enc_in,
-        dec_in,
-        c_out,
-        out_len,
+        enc_in=7,
+        dec_in=7,
+        c_out=7,
+        out_len=24,
         factor=5,
         d_model=512,
         n_heads=8,
-        num_encoder_layers=3,
-        num_decoder_layers=2,
-        d_ff=512,
-        dropout=0.0,
+        num_encoder_layers=2,
+        num_decoder_layers=1,
+        d_ff=2048,
+        dropout=0.05,
         attention_type="prob",
         embedding_type="fixed",
         frequency="h",

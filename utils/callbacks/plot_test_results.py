@@ -1,15 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import torch
-import pytorch_lightning as pl
+import lightning as L
 
 
-class PlotTestInstancesCallback(pl.Callback):
+class PlotTestInstancesCallback(L.Callback):
     def __init__(self, feature_indices):
         super(PlotTestInstancesCallback, self).__init__()
         self.feature_indices = feature_indices
 
-    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0):
         tensorboard = pl_module.logger.experiment
         predictions = outputs["outputs"]
         targets = outputs["targets"]
@@ -40,7 +39,7 @@ class PlotTestInstancesCallback(pl.Callback):
                 )
 
 
-class PlotTestResultsCallback(pl.Callback):
+class PlotTestResultsCallback(L.Callback):
     def __init__(self):
         super(PlotTestResultsCallback, self).__init__()
         self.ground_truths = []
@@ -50,7 +49,7 @@ class PlotTestResultsCallback(pl.Callback):
         self.ground_truths.clear()
         self.predictions.clear()
 
-    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+    def on_test_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0):
         predictions, targets = outputs["outputs"], outputs["targets"]
         self.ground_truths.append(targets[:, 0, :].detach().cpu().numpy())
         self.predictions.append(predictions[:, 0, :].detach().cpu().numpy())
