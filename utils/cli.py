@@ -29,8 +29,8 @@ class CustomLightningCLI(LightningCLI):
         parser.add_lightning_class_args(RichProgressBar, "callbacks.rich_progress_bar")
         parser.add_lightning_class_args(SaveTestResultsCallback, "callbacks.save_test_results_callback")
 
-    def before_fit(self):
-        log_path = self.config.get("fit").get("log_path")
+    def before_instantiate_classes(self):
+        log_path = self.config.get("log_path")
         if log_path is not None:
             utils.logging.output_logger_to_file(L.pytorch._logger, log_path)
         rank_zero_info(self.config)
